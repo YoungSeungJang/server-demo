@@ -44,6 +44,49 @@ app.post('/products', (req, res) => {
   res.status(201).json(newProduct);
 });
 
+// 상품 수정
+app.put('/products/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const existingProduct = productDB.get(id);
+
+  if (!existingProduct) {
+    return res.status(404).json({ message: '수정할 상품을 찾을 수 없습니다.' });
+  }
+
+  const { name, price } = req.body;
+
+  if (!name || typeof price !== 'number') {
+    return res.status(400).json({ message: '유효하지 않은 요청입니다.' });
+  }
+
+  const updatedProduct = { id, name, price };
+  productDB.set(id, updatedProduct);
+
+  res.json({ message: `${id}번 상품이 수정되었습니다.`, product: updatedProduct });
+});
+
+// 상품 삭제
+app.delete('/products/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  if (!productDB.has(id)) {
+    return res.status(404).json({ message: '삭제할 상품을 찾을 수 없습니다.' });
+  }
+
+  productDB.delete(id);
+  res.json({ message: `${id}번 상품이 삭제되었습니다.` });
+});
+
+// 전체 상품 삭제
+app.delete('/products', (req, res) => {
+  if (productDB.size === 0) {
+    return res.status(400).json({ message: '삭제할 상품이 없습니다.' });
+  }
+
+  productDB.clear();
+  res.json({ message: '전체 상품이 삭제되었습니다.' });
+});
+
 app.listen(port, () => {
   console.log(`✅ 서버 실행 중: http://localhost:${port}`);
 });
